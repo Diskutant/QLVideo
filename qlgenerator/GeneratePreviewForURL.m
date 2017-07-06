@@ -11,7 +11,9 @@
 
 #include "generator.h"
 #include "Snapshotter.h"
+#include "NYXMovie.h"
 
+extern NSBundle* __selfBundle;
 
 // Undocumented options
 const CFStringRef kQLPreviewOptionModeKey = CFSTR("QLPreviewMode");
@@ -52,6 +54,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
 #ifdef DEBUG
         NSLog(@"Preview %@ with options %@", [(__bridge NSURL*)url path], options);
 #endif
+        NSString* filepath = [(__bridge NSURL*)url path];
         NSString *theTitle;             // Title for Preview window
         CGImageRef thePreview = NULL;   // Single snapshot
         NSString *html = nil;           // or contact sheet
@@ -194,7 +197,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
 
             if (!thePreview && (previewMode == kQLPreviewNoMode || previewMode == kQLPreviewQuicklookMode) && image_count > 1)
             {
-                html = @"<!DOCTYPE html>\n<html>\n<body style=\"background-color:black\">\n";
+                html = @"<!DOCTYPE html><html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"cid:css\"></head><body style=\"background-color:black\">";
                 NSMutableDictionary *attachments =[NSMutableDictionary dictionaryWithCapacity:image_count];
 
                 // Use inode # to uniquify snapshot names, otherwise QuickLook can confuse them
@@ -211,6 +214,8 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                 else
                     scaled = CGSizeMake(round(size.width * kMaxHeight / size.height), kMaxHeight);
 
+                NSString *divID = nil;
+                NSString *mimeTypeKey = nil;
                 for (int i=0; i < image_count; i++)
                 {
                     if (QLPreviewRequestIsCancelled(preview))
@@ -221,19 +226,49 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                         png = [snapshotter newPNGWithSize:scaled atTime:0];  // Failed on first frame. Try again at start.
                     if (!png)
                         break;
-                    html = [html stringByAppendingFormat:@"<div><img src=\"cid:%lld/%03d.png\" width=\"%d\" height=\"%d\"/></div>\n", inode, i, (int) scaled.width, (int) scaled.height];
-                    [attachments setObject:@{(NSString *) kQLPreviewPropertyMIMETypeKey: @"image/png",
+                    
+                    if (!i) {
+                        divID = @" id=\"i\"";
+                        mimeTypeKey = @"text/html";
+                    } else {
+                        divID = @"";
+                        mimeTypeKey = @"image/png";
+                    }
+                    
+                    html = [html stringByAppendingFormat:@"<div%@><img src=\"cid:%lld/%03d.png\" width=\"%d\" height=\"%d\"/></div>", divID, inode, i, (int) scaled.width, (int) scaled.height];
+                    
+                    if (!i){
+                        NYXMovie* movie = [[NYXMovie alloc] initWithFilepath:filepath];
+                        NSDictionary* mediainfo = [movie informations];
+                        NSString* general = mediainfo[@"general"];
+                        NSString* video = mediainfo[@"video"];
+                        NSString* audio = mediainfo[@"audio"];
+                        NSString* subs = mediainfo[@"subs"];
+                        html = [html stringByAppendingFormat:@"<div id=\"t\">%@%@%@%@</div></div></body>", general ?: @"", video ?: @"", audio ?: @"", subs ?: @""];
+                        
+                        NSURL* css_file = [__selfBundle URLForResource:@"style" withExtension:@"css"];
+                        NSData* css_data = [[NSData alloc] initWithContentsOfURL:css_file];
+                        [attachments setObject:@{ (NSString *)kQLPreviewPropertyMIMETypeKey : @"text/css",
+                                                (NSString *)kQLPreviewPropertyAttachmentDataKey: css_data}
+                                        forKey:@"css"];
+                    }
+                    
+                    [attachments setObject:@{(NSString *) kQLPreviewPropertyMIMETypeKey: mimeTypeKey,
                                              (NSString *) kQLPreviewPropertyAttachmentDataKey: (__bridge NSData *) png}
                                     forKey:[NSString stringWithFormat:@"%lld/%03d.png", inode, i]];
+                    
+                    
                     CFRelease(png);
                 }
 
+                
                 html = [html stringByAppendingString:@"</body>\n</html>\n"];
                 properties = @{(NSString *) kQLPreviewPropertyDisplayNameKey: theTitle,
                                (NSString *) kQLPreviewPropertyTextEncodingNameKey: @"UTF-8",
                                (__bridge NSString *) kQLPreviewPropertyPageElementXPathKey: @"/html/body/div",
                                (NSString *) kQLPreviewPropertyPDFStyleKey: @(kQLPreviewPDFPagesWithThumbnailsOnLeftStyle),
                                (NSString *) kQLPreviewPropertyAttachmentsKey: attachments};
+            
             }
 
             // Fall back to generating a single snapshot

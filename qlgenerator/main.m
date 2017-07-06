@@ -27,6 +27,8 @@
 // Don't modify this line
 #define PLUGIN_ID "4A60E117-F6DF-4B3C-9603-2BBE6CEC6972"
 
+NSBundle* __selfBundle;
+
 // Settings
 NSString * const kSettingsSuiteName     = @"uk.org.marginal.qlvideo";
 NSString * const kSettingsSnapshotCount = @"SnapshotCount";     // Max number of snapshots generated in Preview mode.
@@ -40,7 +42,7 @@ const int kMaxSnapshotCount = 100;
 
 // Implementation
 const int kMinimumDuration = 5;         // Don't bother seeking clips shorter than this [s]. Completely arbitrary.
-const int kMinimumPeriod = 60;          // Don't create snapshots spaced more closely than this [s]. Completely arbitrary.
+const int kMinimumPeriod = 10;          // Don't create snapshots spaced more closely than this [s]. Completely arbitrary.
 
 extern int QLMemoryUsedCritical;        // From QuickLook framework
 static const int kSatelliteMemory = 150 * 1024 * 1024; // Memory threshold for our QuickLookSatellite process

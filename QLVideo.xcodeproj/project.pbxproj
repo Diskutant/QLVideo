@@ -65,6 +65,8 @@
 		ABE23BDA1D2591F8004E9D26 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD91D2591F8004E9D26 /* CoreMedia.framework */; };
 		ABE23BDB1D2591F8004E9D26 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD91D2591F8004E9D26 /* CoreMedia.framework */; };
 		ABE461181A15A776006C89A2 /* schema.strings in Resources */ = {isa = PBXBuildFile; fileRef = ABE4610E1A15A519006C89A2 /* schema.strings */; };
+		B49CDC281F0E711D00ED8C13 /* NYXMovie.m in Sources */ = {isa = PBXBuildFile; fileRef = B49CDC271F0E711D00ED8C13 /* NYXMovie.m */; };
+		B49CDC2A1F0E76A400ED8C13 /* style.css in Resources */ = {isa = PBXBuildFile; fileRef = B49CDC291F0E76A400ED8C13 /* style.css */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -189,6 +191,9 @@
 		ABFA2CDE1A3E153700B17BC5 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/schema.strings; sourceTree = "<group>"; };
 		ABFA2CE01A3E155000B17BC5 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ABFE69C31A28399200243CA0 /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh_CN; path = zh_CN.lproj/schema.strings; sourceTree = "<group>"; };
+		B49CDC261F0E711D00ED8C13 /* NYXMovie.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NYXMovie.h; sourceTree = "<group>"; };
+		B49CDC271F0E711D00ED8C13 /* NYXMovie.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NYXMovie.m; sourceTree = "<group>"; };
+		B49CDC291F0E76A400ED8C13 /* style.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = style.css; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -287,6 +292,8 @@
 				AB93B106196CA60500708B2E /* GeneratePreviewForURL.m */,
 				AB93B1191972EBF700708B2E /* Snapshotter.h */,
 				AB93B11A1972EBF700708B2E /* Snapshotter.m */,
+				B49CDC261F0E711D00ED8C13 /* NYXMovie.h */,
+				B49CDC271F0E711D00ED8C13 /* NYXMovie.m */,
 				AB93B0FF196CA60500708B2E /* Supporting Files */,
 			);
 			path = qlgenerator;
@@ -295,6 +302,7 @@
 		AB93B0FF196CA60500708B2E /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				B49CDC291F0E76A400ED8C13 /* style.css */,
 				AB93B10E196CA7EE00708B2E /* Info.plist */,
 				AB19C82B1A3A295700A14247 /* Localizable.strings */,
 			);
@@ -567,6 +575,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB9730241A3A2C550067C886 /* Localizable.strings in Resources */,
+				B49CDC2A1F0E76A400ED8C13 /* style.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -624,6 +633,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB93B105196CA60500708B2E /* GenerateThumbnailForURL.m in Sources */,
+				B49CDC281F0E711D00ED8C13 /* NYXMovie.m in Sources */,
 				AB93B107196CA60500708B2E /* GeneratePreviewForURL.m in Sources */,
 				AB93B109196CA60500708B2E /* main.m in Sources */,
 				AB93B11C1972EBF700708B2E /* Snapshotter.m in Sources */,
