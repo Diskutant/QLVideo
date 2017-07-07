@@ -215,7 +215,6 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                     scaled = CGSizeMake(round(size.width * kMaxHeight / size.height), kMaxHeight);
 
                 NSString *divID = nil;
-                NSString *mimeTypeKey = nil;
                 for (int i=0; i < image_count; i++)
                 {
                     if (QLPreviewRequestIsCancelled(preview))
@@ -229,10 +228,9 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                     
                     if (!i) {
                         divID = @" id=\"i\"";
-                        mimeTypeKey = @"text/html";
+                        html = [html stringByAppendingString:@"<div id=\"c\">"];
                     } else {
                         divID = @"";
-                        mimeTypeKey = @"image/png";
                     }
                     
                     html = [html stringByAppendingFormat:@"<div%@><img src=\"cid:%lld/%03d.png\" width=\"%d\" height=\"%d\"/></div>", divID, inode, i, (int) scaled.width, (int) scaled.height];
@@ -244,16 +242,17 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                         NSString* video = mediainfo[@"video"];
                         NSString* audio = mediainfo[@"audio"];
                         NSString* subs = mediainfo[@"subs"];
-                        html = [html stringByAppendingFormat:@"<div id=\"t\">%@%@%@%@</div></div></body>", general ?: @"", video ?: @"", audio ?: @"", subs ?: @""];
+                        html = [html stringByAppendingFormat:@"<div id=\"t\">%@%@%@%@</div></div>", general ?: @"", video ?: @"", audio ?: @"", subs ?: @""];
                         
-                        NSURL* css_file = [__selfBundle URLForResource:@"style" withExtension:@"css"];
+                        NSBundle *selfBundle = [NSBundle bundleWithIdentifier:[kSettingsSuiteName stringByAppendingString:@".qlgenerator"]];
+                        NSURL* css_file = [selfBundle URLForResource:@"style" withExtension:@"css"];
                         NSData* css_data = [[NSData alloc] initWithContentsOfURL:css_file];
                         [attachments setObject:@{ (NSString *)kQLPreviewPropertyMIMETypeKey : @"text/css",
                                                 (NSString *)kQLPreviewPropertyAttachmentDataKey: css_data}
                                         forKey:@"css"];
                     }
                     
-                    [attachments setObject:@{(NSString *) kQLPreviewPropertyMIMETypeKey: mimeTypeKey,
+                    [attachments setObject:@{(NSString *) kQLPreviewPropertyMIMETypeKey: @"image/png",
                                              (NSString *) kQLPreviewPropertyAttachmentDataKey: (__bridge NSData *) png}
                                     forKey:[NSString stringWithFormat:@"%lld/%03d.png", inode, i]];
                     
@@ -265,6 +264,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                 html = [html stringByAppendingString:@"</body>\n</html>\n"];
                 properties = @{(NSString *) kQLPreviewPropertyDisplayNameKey: theTitle,
                                (NSString *) kQLPreviewPropertyTextEncodingNameKey: @"UTF-8",
+                               (NSString *) kQLPreviewPropertyMIMETypeKey: @"text/html",
                                (__bridge NSString *) kQLPreviewPropertyPageElementXPathKey: @"/html/body/div",
                                (NSString *) kQLPreviewPropertyPDFStyleKey: @(kQLPreviewPDFPagesWithThumbnailsOnLeftStyle),
                                (NSString *) kQLPreviewPropertyAttachmentsKey: attachments};
@@ -288,7 +288,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
         if (html)
         {
 #ifdef DEBUG
-            NSLog(@"Supplying %lu images for %@", [properties[(NSString *) kQLPreviewPropertyAttachmentsKey] count], [(__bridge NSURL*)url path]);
+            NSLog(@"Supplying %lu images for %@", [properties[(NSString *) kQLPreviewPropertyAttachmentsKey] count]-1, [(__bridge NSURL*)url path]);
 #endif
             QLPreviewRequestSetDataRepresentation(preview, (__bridge CFDataRef) [html dataUsingEncoding:NSUTF8StringEncoding], kUTTypeHTML,
                                                   (__bridge CFDictionaryRef) properties);

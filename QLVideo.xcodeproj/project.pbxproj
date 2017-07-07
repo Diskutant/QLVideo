@@ -810,7 +810,8 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = qlgenerator/Info.plist;
-				INSTALL_PATH = /Library/QuickLook;
+				INFOPLIST_PREPROCESS = YES;
+				INSTALL_PATH = "~/Library/QuickLook";
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.qlgenerator;
 				PRODUCT_NAME = Video;
 				WRAPPER_EXTENSION = qlgenerator;
@@ -822,7 +823,8 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = qlgenerator/Info.plist;
-				INSTALL_PATH = /Library/QuickLook;
+				INFOPLIST_PREPROCESS = YES;
+				INSTALL_PATH = "~/Library/QuickLook";
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.qlgenerator;
 				PRODUCT_NAME = Video;
 				WRAPPER_EXTENSION = qlgenerator;

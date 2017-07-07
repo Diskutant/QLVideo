@@ -15,42 +15,23 @@ body
 	background-color:#000;
 }
 
-#c
-{
-	width:1280px;
-	height:720px;
-}
-
-#i
-{
-	height:720px;
-	line-height:720px;
-	display:table-cell;
-}
-
-#i img
-{
-	max-width:100%;
-	margin:auto;
-	vertical-align:middle;
-}
 
 #t
 {
-	width:1280px;
-	height:720px;
 	position:absolute;
 	top:0;
 	left:0;
 	background-color:rgba(0,0,0,.75);
 	overflow-y:scroll;
+    padding-right: 10px;
+    padding-bottom: 10px;
 }
 
 #t .stitle
 {
 	margin:8px;
 	font-family:Verdana;
-	font-size:24px;
+	font-size:0.7em;
 	font-weight:bolder;
 	color:#ECECEC;
 }
@@ -72,13 +53,13 @@ body
 {
 	font-family:Courier;
 	font-weight:bold;
-	font-size:18px;
+	font-size:0.4em;
 	color:#CCC;
 }
 
 #t ul li .sc
 {
 	font-family:"HelveticaNeue-Light", sans-serif;
-	font-size:18px;
+	font-size:0.4em;
 	color:#FFF;
 }

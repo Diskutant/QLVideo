@@ -27,8 +27,6 @@
 // Don't modify this line
 #define PLUGIN_ID "4A60E117-F6DF-4B3C-9603-2BBE6CEC6972"
 
-NSBundle* __selfBundle;
-
 // Settings
 NSString * const kSettingsSuiteName     = @"uk.org.marginal.qlvideo";
 NSString * const kSettingsSnapshotCount = @"SnapshotCount";     // Max number of snapshots generated in Preview mode.
@@ -146,7 +144,7 @@ QuickLookGeneratorPluginType *AllocQuickLookGeneratorPluginType(CFUUIDRef inFact
     av_log_set_level(AV_LOG_INFO |AV_LOG_SKIP_REPEATED);
 #endif
     av_register_all();
-
+    
     // Plugin intitialisation
     NSOperatingSystemVersion yosemite = { 10, 10, 0 };
     brokenQLCoverFlow = (!([[NSProcessInfo processInfo] respondsToSelector:@selector(isOperatingSystemAtLeastVersion:)] &&
