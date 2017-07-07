@@ -217,10 +217,18 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                 NSString *divID = nil;
                 for (int i=0; i < image_count; i++)
                 {
+                    
                     if (QLPreviewRequestIsCancelled(preview))
                         return kQLReturnNoError;
-
-                    CFDataRef png = [snapshotter newPNGWithSize:scaled atTime:[snapshotter thumbnails] ? -1 : (duration * (i + 1)) / (image_count + 1)];
+                    
+                    CFDataRef png = nil;
+                    if(!i){
+                        png = [snapshotter newCoverArtAsCFDataRefWithMode:CoverArtLandscape];
+                    }
+                    
+                    if(!png)
+                        png = [snapshotter newPNGWithSize:scaled atTime:[snapshotter thumbnails] ? -1 : (duration * (i + 1)) / (image_count + 1)];
+                    
                     if (!png && !i)
                         png = [snapshotter newPNGWithSize:scaled atTime:0];  // Failed on first frame. Try again at start.
                     if (!png)

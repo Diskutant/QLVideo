@@ -16,7 +16,7 @@ static const int kMaxKeyframeBlankSkip = 2;  // How many keyframes to skip for b
 
 @implementation Snapshotter
 
-- (instancetype) initWithURL:(CFURLRef)url;
+- (instancetype) initWithURL:(CFURLRef)url
 {
     if (!(self = [super init]))
         return nil;
@@ -89,7 +89,7 @@ static const int kMaxKeyframeBlankSkip = 2;  // How many keyframes to skip for b
 }
 
 // Gets cover art if available, or nil.
-- (CGImageRef) newCoverArtWithMode:(CoverArtMode)mode;
+- (CGImageRef) newCoverArtWithMode:(CoverArtMode)mode
 {
     // Cover art can appear as an extra video stream (e.g. mp4, wtv) or as attachment(s) (e.g. mkv).
     // (Note this isn't necessarily how they're encoded in the file, but how the FFmpeg codecs present them).
@@ -177,6 +177,88 @@ static const int kMaxKeyframeBlankSkip = 2;  // How many keyframes to skip for b
 }
 
 
+
+- (CFDataRef) newCoverArtAsCFDataRefWithMode:(CoverArtMode)mode
+{
+    // Cover art can appear as an extra video stream (e.g. mp4, wtv) or as attachment(s) (e.g. mkv).
+    // (Note this isn't necessarily how they're encoded in the file, but how the FFmpeg codecs present them).
+    
+    AVStream *art_stream = NULL;
+    int art_priority = 0;
+    
+    for (int idx=0; idx < fmt_ctx->nb_streams; idx++)
+    {
+        AVStream *s = fmt_ctx->streams[idx];
+        AVCodecContext *ctx = s->codec;
+        if (ctx && (ctx->codec_id == AV_CODEC_ID_PNG || ctx->codec_id == AV_CODEC_ID_MJPEG))
+        {
+            if (ctx->codec_type == AVMEDIA_TYPE_VIDEO &&
+                ((s->disposition & (AV_DISPOSITION_ATTACHED_PIC|AV_DISPOSITION_TIMED_THUMBNAILS)) == AV_DISPOSITION_ATTACHED_PIC))
+            {
+                if (mode != CoverArtLandscape)  // Assume that unnamed cover art is *not* landscape, so don't return it
+                    art_stream = s;
+                
+                break;      // prefer first if multiple
+            }
+            else if (ctx->codec_type == AVMEDIA_TYPE_ATTACHMENT)
+            {
+                // MKVs can contain multiple cover art - see http://matroska.org/technical/cover_art/index.html
+                int priority;
+                AVDictionaryEntry *filename = av_dict_get(s->metadata, "filename", NULL, 0);
+                
+                switch (mode)
+                {
+                    case CoverArtThumbnail:     // Prefer small square/portrait.
+                        if (!filename || !filename->value)
+                            priority = 1;
+                        else if (!strncasecmp(filename->value, "cover.", 6))
+                            priority = 2;
+                        else if (!strncasecmp(filename->value, "small_cover.", 12))
+                            priority = 3;
+                        else
+                            priority = 1;
+                        break;
+                        
+                    case CoverArtLandscape:    // Only return large landscape.
+                        if (filename && filename->value && !strncasecmp(filename->value, "cover_land.", 11))
+                            priority = 3;
+                        else
+                            priority = 0;
+                        break;
+                        
+                    default:    // CoverArtDefault  Prefer large square/portrait.
+                        if (!filename || !filename->value)
+                            priority = 1;
+                        else if (!strncasecmp(filename->value, "small_cover.", 12))
+                            priority = 2;
+                        else if (!strncasecmp(filename->value, "cover.", 6))
+                            priority = 3;
+                        else
+                            priority = 1;
+                }
+                
+                if (art_priority < priority)    // Prefer first if multiple with same priority
+                {
+                    art_priority = priority;
+                    art_stream = s;
+                }
+            }
+        }
+    }
+    
+    // Extract data
+    CFDataRef data;
+    if (!art_stream)
+        return nil;
+    else if (art_stream->disposition & AV_DISPOSITION_ATTACHED_PIC)
+        data = CFDataCreateWithBytesNoCopy(NULL, art_stream->attached_pic.data, art_stream->attached_pic.size, kCFAllocatorNull);   // we'll dealloc when fmt_ctx is closed
+    else
+        data = CFDataCreateWithBytesNoCopy(NULL, art_stream->codec->extradata, art_stream->codec->extradata_size, kCFAllocatorNull);   // we'll dealloc when fmt_ctx is closed
+    
+    return data;
+}
+
+
 // Private method. Gets snapshot as raw RGB, blocking until completion, timeout or failure.
 - (int) newImageWithSize:(CGSize)size atTime:(NSInteger)seconds to:(uint8_t *const [])dst withStride:(const int [])dstStride
 {
@@ -259,7 +341,7 @@ static const int kMaxKeyframeBlankSkip = 2;  // How many keyframes to skip for b
 }
 
 // Gets non-black snapshot and blocks until completion, timeout or failure.
-- (CGImageRef) newSnapshotWithSize:(CGSize)size atTime:(NSInteger)seconds;
+- (CGImageRef) newSnapshotWithSize:(CGSize)size atTime:(NSInteger)seconds
 {
     uint8_t *picture = NULL;   // points to the RGB data
     int linesize = ((3 * (int) size.width + 15) / 16) * 16; // align for efficient swscale
@@ -305,7 +387,7 @@ static const int kMaxKeyframeBlankSkip = 2;  // How many keyframes to skip for b
 }
 
 // Gets snapshot and blocks until completion, timeout or failure.
-- (CFDataRef) newPNGWithSize:(CGSize)size atTime:(NSInteger)seconds;
+- (CFDataRef) newPNGWithSize:(CGSize)size atTime:(NSInteger)seconds
 {
     // Allocate temporary frame for decoded RGB data
     AVFrame *rgb_frame = av_frame_alloc();
