@@ -229,6 +229,11 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                     if(!png)
                         png = [snapshotter newPNGWithSize:scaled atTime:[snapshotter thumbnails] ? -1 : (duration * (i + 1)) / (image_count + 1)];
                     
+#ifdef DEBUG
+                    if(png) NSLog(@"Using Cover as first image");
+#endif
+                    
+                    
                     if (!png && !i)
                         png = [snapshotter newPNGWithSize:scaled atTime:0];  // Failed on first frame. Try again at start.
                     if (!png)
