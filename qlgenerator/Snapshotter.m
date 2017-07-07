@@ -14,6 +14,8 @@
 static const int kMaxKeyframeTime = 4;  // How far to look for a keyframe [s]
 static const int kMaxKeyframeBlankSkip = 2;  // How many keyframes to skip for being too black or too white
 
+AVStream *art_stream = NULL;
+
 @implementation Snapshotter
 
 - (instancetype) initWithURL:(CFURLRef)url
@@ -91,74 +93,7 @@ static const int kMaxKeyframeBlankSkip = 2;  // How many keyframes to skip for b
 // Gets cover art if available, or nil.
 - (CGImageRef) newCoverArtWithMode:(CoverArtMode)mode
 {
-    // Cover art can appear as an extra video stream (e.g. mp4, wtv) or as attachment(s) (e.g. mkv).
-    // (Note this isn't necessarily how they're encoded in the file, but how the FFmpeg codecs present them).
-
-    AVStream *art_stream = NULL;
-    int art_priority = 0;
-
-    for (int idx=0; idx < fmt_ctx->nb_streams; idx++)
-    {
-        AVStream *s = fmt_ctx->streams[idx];
-        AVCodecContext *ctx = s->codec;
-        if (ctx && (ctx->codec_id == AV_CODEC_ID_PNG || ctx->codec_id == AV_CODEC_ID_MJPEG))
-        {
-            if (ctx->codec_type == AVMEDIA_TYPE_VIDEO &&
-                ((s->disposition & (AV_DISPOSITION_ATTACHED_PIC|AV_DISPOSITION_TIMED_THUMBNAILS)) == AV_DISPOSITION_ATTACHED_PIC))
-            {
-                if (mode != CoverArtLandscape)  // Assume that unnamed cover art is *not* landscape, so don't return it
-                    art_stream = s;
-
-                break;      // prefer first if multiple
-            }
-            else if (ctx->codec_type == AVMEDIA_TYPE_ATTACHMENT)
-            {
-                // MKVs can contain multiple cover art - see http://matroska.org/technical/cover_art/index.html
-                int priority;
-                AVDictionaryEntry *filename = av_dict_get(s->metadata, "filename", NULL, 0);
-
-                switch (mode)
-                {
-                case CoverArtThumbnail:     // Prefer small square/portrait.
-                    if (!filename || !filename->value)
-                        priority = 1;
-                    else if (!strncasecmp(filename->value, "cover.", 6))
-                        priority = 2;
-                    else if (!strncasecmp(filename->value, "small_cover.", 12))
-                        priority = 3;
-                    else
-                        priority = 1;
-                    break;
-
-                case CoverArtLandscape:    // Only return large landscape.
-                    if (filename && filename->value && !strncasecmp(filename->value, "cover_land.", 11))
-                        priority = 3;
-                    else
-                        priority = 0;
-                    break;
-
-                default:    // CoverArtDefault  Prefer large square/portrait.
-                    if (!filename || !filename->value)
-                        priority = 1;
-                    else if (!strncasecmp(filename->value, "small_cover.", 12))
-                        priority = 2;
-                    else if (!strncasecmp(filename->value, "cover.", 6))
-                        priority = 3;
-                    else
-                        priority = 1;
-                }
-
-                if (art_priority < priority)    // Prefer first if multiple with same priority
-                {
-                    art_priority = priority;
-                    art_stream = s;
-                }
-            }
-        }
-    }
-
-    // Extract data
-    CFDataRef data;
+    CFDataRef data = [self newCoverArtAsCFDataRefWithMode:mode];
     if (!art_stream)
         return nil;
     else if (art_stream->disposition & AV_DISPOSITION_ATTACHED_PIC)
@@ -183,7 +118,7 @@ static const int kMaxKeyframeBlankSkip = 2;  // How many keyframes to skip for b
     // Cover art can appear as an extra video stream (e.g. mp4, wtv) or as attachment(s) (e.g. mkv).
     // (Note this isn't necessarily how they're encoded in the file, but how the FFmpeg codecs present them).
     
-    AVStream *art_stream = NULL;
+    //AVStream *art_stream = NULL;
     int art_priority = 0;
     
     for (int idx=0; idx < fmt_ctx->nb_streams; idx++)

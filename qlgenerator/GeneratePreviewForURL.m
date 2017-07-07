@@ -226,12 +226,12 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                         png = [snapshotter newCoverArtAsCFDataRefWithMode:CoverArtLandscape];
                     }
                     
-                    if(!png)
-                        png = [snapshotter newPNGWithSize:scaled atTime:[snapshotter thumbnails] ? -1 : (duration * (i + 1)) / (image_count + 1)];
-                    
 #ifdef DEBUG
                     if(png) NSLog(@"Using Cover as first image");
 #endif
+                    
+                    if(!png)
+                        png = [snapshotter newPNGWithSize:scaled atTime:[snapshotter thumbnails] ? -1 : (duration * (i + 1)) / (image_count + 1)];
                     
                     
                     if (!png && !i)
@@ -275,11 +275,14 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
 
                 
                 html = [html stringByAppendingString:@"</body>\n</html>\n"];
+                
+                int pdfStyle = image_count == 1 ? kQLPreviewPDFStandardStyle : kQLPreviewPDFPagesWithThumbnailsOnLeftStyle;
+                
                 properties = @{(NSString *) kQLPreviewPropertyDisplayNameKey: theTitle,
                                (NSString *) kQLPreviewPropertyTextEncodingNameKey: @"UTF-8",
                                (NSString *) kQLPreviewPropertyMIMETypeKey: @"text/html",
                                (__bridge NSString *) kQLPreviewPropertyPageElementXPathKey: @"/html/body/div",
-                               (NSString *) kQLPreviewPropertyPDFStyleKey: @(kQLPreviewPDFPagesWithThumbnailsOnLeftStyle),
+                               (NSString *) kQLPreviewPropertyPDFStyleKey: @(pdfStyle),
                                (NSString *) kQLPreviewPropertyAttachmentsKey: attachments};
             
             }
