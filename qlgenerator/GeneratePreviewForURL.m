@@ -25,9 +25,11 @@ typedef NS_ENUM(NSInteger, QLPreviewMode)
     kQLPreviewNoMode		= 0,
     kQLPreviewGetInfoMode	= 1,	// File -> Get Info and Column view in Finder
     kQLPreviewCoverFlowMode	= 2,	// Finder's Cover Flow view
-    kQLPreviewUnknownMode	= 3,
     kQLPreviewSpotlightMode	= 4,	// Desktop Spotlight search popup bubble
     kQLPreviewQuicklookMode	= 5,	// File -> Quick Look in Finder (also qlmanage -p)
+    // From 10.13 High Sierra:
+    kQLPreviewHSQuicklookMode	= 6,	// File -> Quick Look in Finder (also qlmanage -p)
+    kQLPreviewHSSpotlightMode	= 9,	// Desktop Spotlight search context bubble
 };
 
 
@@ -100,7 +102,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
 
             // Prefer any cover art (if present) over a playable preview or static snapshot in Finder and Spotlight views
             QLPreviewMode previewMode = [((__bridge NSDictionary *)options)[(__bridge NSString *) kQLPreviewOptionModeKey] intValue];
-            if (previewMode == kQLPreviewGetInfoMode || previewMode == kQLPreviewSpotlightMode)
+            if (previewMode == kQLPreviewGetInfoMode || previewMode == kQLPreviewSpotlightMode || previewMode == kQLPreviewHSSpotlightMode)
                 thePreview = [snapshotter newCoverArtWithMode:CoverArtDefault];
 
             NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:kSettingsSuiteName];
@@ -167,7 +169,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
             // AVFoundation/QTKit can't play it
 
             // prefer landscape cover art (if present) over a static snapshot
-            if (!thePreview && previewMode != kQLPreviewGetInfoMode && previewMode != kQLPreviewSpotlightMode)
+            if (!thePreview && previewMode != kQLPreviewGetInfoMode && previewMode != kQLPreviewSpotlightMode && previewMode != kQLPreviewHSSpotlightMode)
                 thePreview = [snapshotter newCoverArtWithMode:CoverArtLandscape];
 
             // Generate a contact sheet?
@@ -195,7 +197,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
                     image_count = (int) desired_image_count;
             }
 
-            if (!thePreview && (previewMode == kQLPreviewNoMode || previewMode == kQLPreviewQuicklookMode) && image_count > 1)
+            if (!thePreview && (previewMode == kQLPreviewNoMode || previewMode == kQLPreviewQuicklookMode || previewMode == kQLPreviewHSQuicklookMode) && image_count > 1)
             {
                 html = @"<!DOCTYPE html><html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"cid:css\"></head><body style=\"background-color:black\">";
                 NSMutableDictionary *attachments =[NSMutableDictionary dictionaryWithCapacity:image_count];
@@ -326,7 +328,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
 # endif
             NSLog(@"Supplying %dx%d image for %@", (int) size.width, (int) size.height, [(__bridge NSURL*)url path]);
 #endif
-            CGContextRef context = QLPreviewRequestCreateContext(preview, size, true, (__bridge CFDictionaryRef) properties);
+            CGContextRef context = QLPreviewRequestCreateContext(preview, size, false, (__bridge CFDictionaryRef) properties);
             CGContextDrawImage(context, CGRectMake(0, 0, size.width, size.height), thePreview);
             QLPreviewRequestFlushContext(preview, context);
             CGContextRelease(context);
